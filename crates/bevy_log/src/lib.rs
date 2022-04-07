@@ -16,6 +16,11 @@ use std::panic;
 
 #[cfg(target_os = "android")]
 mod android_tracing;
+mod render_time_debug;
+
+#[cfg(feature = "render-time-debug")]
+pub use render_time_debug::RenderDebugChannel;
+pub use render_time_debug::RenderDebugEvent;
 
 pub mod prelude {
     //! The Bevy Log Prelude.
@@ -120,6 +125,13 @@ impl Plugin for LogPlugin {
             .or_else(|_| EnvFilter::try_new(&default_filter))
             .unwrap();
         let subscriber = Registry::default().with(filter_layer);
+
+        #[cfg(feature = "render-time-debug")]
+        let subscriber = {
+            let (sender, receiver) = crossbeam_channel::bounded(16);
+            app.insert_resource(render_time_debug::RenderDebugChannel { receiver });
+            subscriber.with(render_time_debug::RenderDebugLayer { sender })
+        };
 
         #[cfg(feature = "trace")]
         let subscriber = subscriber.with(tracing_error::ErrorLayer::default());
