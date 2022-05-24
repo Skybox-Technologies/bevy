@@ -23,7 +23,8 @@ pub mod prelude {
 use bevy_app::prelude::*;
 use bevy_ecs::{event::Events, schedule::SystemLabel};
 
-pub struct WindowPlugin {
+#[derive(Clone)]
+pub struct WindowSettings {
     /// Whether to create a window when added.
     ///
     /// Note that if there are no windows, by default the App will exit,
@@ -46,15 +47,18 @@ pub struct WindowPlugin {
     pub close_when_requested: bool,
 }
 
-impl Default for WindowPlugin {
+impl Default for WindowSettings {
     fn default() -> Self {
-        WindowPlugin {
+        WindowSettings {
             add_primary_window: true,
             exit_on_all_closed: true,
             close_when_requested: true,
         }
     }
 }
+
+#[derive(Default)]
+pub struct WindowPlugin;
 
 impl Plugin for WindowPlugin {
     fn build(&self, app: &mut App) {
@@ -75,11 +79,17 @@ impl Plugin for WindowPlugin {
             .add_event::<WindowMoved>()
             .init_resource::<Windows>();
 
-        if self.add_primary_window {
+        let settings = app
+            .world
+            .get_resource::<WindowSettings>()
+            .cloned()
+            .unwrap_or_default();
+
+        if settings.add_primary_window {
             let window_descriptor = app
                 .world
                 .get_resource::<WindowDescriptor>()
-                .map(|descriptor| (*descriptor).clone())
+                .cloned()
                 .unwrap_or_default();
             let mut create_window_event = app.world.resource_mut::<Events<CreateWindow>>();
             create_window_event.send(CreateWindow {
@@ -88,10 +98,10 @@ impl Plugin for WindowPlugin {
             });
         }
 
-        if self.exit_on_all_closed {
+        if settings.exit_on_all_closed {
             app.add_system(exit_on_all_closed);
         }
-        if self.close_when_requested {
+        if settings.close_when_requested {
             app.add_system(close_when_requested);
         }
     }
