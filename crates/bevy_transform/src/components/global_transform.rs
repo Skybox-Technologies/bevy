@@ -195,14 +195,16 @@ impl GlobalTransform {
     #[doc(hidden)]
     #[inline]
     pub fn rotate(&mut self, rotation: Quat) {
-        self.rotation = rotation * self.rotation;
+        *self = Self::from_rotation(rotation) * *self;
     }
 
     #[doc(hidden)]
     #[inline]
     pub fn rotate_around(&mut self, point: Vec3, rotation: Quat) {
-        self.translation = point + rotation * (self.translation - point);
-        self.rotation *= rotation;
+        *self = Self::from_translation(point)
+            * Self::from_rotation(rotation)
+            * Self::from_translation(-point)
+            * *self;
     }
 
     /// Multiplies `self` with `transform` component by component, returning the
@@ -210,14 +212,7 @@ impl GlobalTransform {
     #[inline]
     #[must_use]
     pub fn mul_transform(&self, transform: Transform) -> Self {
-        let translation = self.mul_vec3(transform.translation);
-        let rotation = self.rotation * transform.rotation;
-        let scale = self.scale * transform.scale;
-        Self {
-            translation,
-            rotation,
-            scale,
-        }
+        Self::from_matrix(self.compute_matrix() * transform.compute_matrix())
     }
 
     /// Returns a [`Vec3`] of this [`Transform`] applied to `value`.
