@@ -207,7 +207,7 @@ impl Transform {
     /// If this [`Transform`] has a parent, the `rotation` is relative to the rotation of the parent.
     #[inline]
     pub fn rotate(&mut self, rotation: Quat) {
-        self.rotation = rotation * self.rotation;
+        *self = Self::from_rotation(rotation) * *self;
     }
 
     /// Rotates this [`Transform`] around the given `axis` by `angle` (in radians).
@@ -287,8 +287,10 @@ impl Transform {
     /// If this [`Transform`] has a parent, the `point` is relative to the [`Transform`] of the parent.
     #[inline]
     pub fn rotate_around(&mut self, point: Vec3, rotation: Quat) {
-        self.translate_around(point, rotation);
-        self.rotate(rotation);
+        *self = Self::from_translation(point)
+            * Self::from_rotation(rotation)
+            * Self::from_translation(-point)
+            * *self;
     }
 
     /// Rotates this [`Transform`] so that its local negative `Z` direction is toward
@@ -306,14 +308,7 @@ impl Transform {
     #[inline]
     #[must_use]
     pub fn mul_transform(&self, transform: Transform) -> Self {
-        let translation = self.mul_vec3(transform.translation);
-        let rotation = self.rotation * transform.rotation;
-        let scale = self.scale * transform.scale;
-        Transform {
-            translation,
-            rotation,
-            scale,
-        }
+        Self::from_matrix(self.compute_matrix() * transform.compute_matrix())
     }
 
     /// Returns a [`Vec3`] of this [`Transform`] applied to `value`.
