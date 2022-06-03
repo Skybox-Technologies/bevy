@@ -249,7 +249,7 @@ impl Transform {
     /// [`3d_rotation`]: https://github.com/bevyengine/bevy/blob/latest/examples/transforms/3d_rotation.rs
     #[inline]
     pub fn rotate(&mut self, rotation: Quat) {
-        self.rotation = rotation * self.rotation;
+        *self = Self::from_rotation(rotation) * *self;
     }
 
     /// Rotates this [`Transform`] around the given `axis` by `angle` (in radians).
@@ -329,8 +329,10 @@ impl Transform {
     /// If this [`Transform`] has a parent, the `point` is relative to the [`Transform`] of the parent.
     #[inline]
     pub fn rotate_around(&mut self, point: Vec3, rotation: Quat) {
-        self.translate_around(point, rotation);
-        self.rotate(rotation);
+        *self = Self::from_translation(point)
+            * Self::from_rotation(rotation)
+            * Self::from_translation(-point)
+            * *self;
     }
 
     /// Rotates this [`Transform`] so that [`Transform::forward`] points towards the `target` position,
@@ -369,14 +371,7 @@ impl Transform {
     #[inline]
     #[must_use]
     pub fn mul_transform(&self, transform: Transform) -> Self {
-        let translation = self.transform_point(transform.translation);
-        let rotation = self.rotation * transform.rotation;
-        let scale = self.scale * transform.scale;
-        Transform {
-            translation,
-            rotation,
-            scale,
-        }
+        Self::from_matrix(self.compute_matrix() * transform.compute_matrix())
     }
 
     /// Transforms the given `point`, applying scale, rotation and translation.
