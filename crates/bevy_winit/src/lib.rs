@@ -647,13 +647,13 @@ fn handle_create_window_events(
         #[cfg(target_arch = "wasm32")]
         {
             let channel = world.resource_mut::<web_resize::CanvasParentResizeEventChannel>();
-            if create_window_event.descriptor.fit_canvas_to_parent {
+            if let Some(fit_canvas_strategy) = create_window_event.descriptor.fit_canvas_strategy {
                 let selector = if let Some(selector) = &create_window_event.descriptor.canvas {
                     selector
                 } else {
                     web_resize::WINIT_CANVAS_SELECTOR
                 };
-                channel.listen_to_selector(create_window_event.id, selector);
+                channel.listen_to_selector(create_window_event.id, selector, fit_canvas_strategy);
             }
         }
     }
