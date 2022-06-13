@@ -145,6 +145,12 @@ impl WindowResizeConstraints {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub enum FitCanvasStrategy {
+    ToParent,
+    ToSelf,
+}
+
 /// An operating system window that can present content and receive user input.
 ///
 /// To create a window, use a [`EventWriter<CreateWindow>`](`crate::CreateWindow`).
@@ -204,7 +210,7 @@ pub struct Window {
     focused: bool,
     mode: WindowMode,
     canvas: Option<String>,
-    fit_canvas_to_parent: bool,
+    fit_canvas_strategy: Option<FitCanvasStrategy>,
     command_queue: Vec<WindowCommand>,
 }
 /// A command to be sent to a window.
@@ -330,7 +336,7 @@ impl Window {
             focused: true,
             mode: window_descriptor.mode,
             canvas: window_descriptor.canvas.clone(),
-            fit_canvas_to_parent: window_descriptor.fit_canvas_to_parent,
+            fit_canvas_strategy: window_descriptor.fit_canvas_strategy,
             command_queue: Vec::new(),
         }
     }
@@ -736,8 +742,8 @@ impl Window {
     ///
     /// This value has no effect on non-web platforms.
     #[inline]
-    pub fn fit_canvas_to_parent(&self) -> bool {
-        self.fit_canvas_to_parent
+    pub fn fit_canvas(&self) -> Option<FitCanvasStrategy> {
+        self.fit_canvas_strategy
     }
 }
 
@@ -841,7 +847,7 @@ pub struct WindowDescriptor {
     /// feature, ensure the parent's size is not affected by its children.
     ///
     /// This value has no effect on non-web platforms.
-    pub fit_canvas_to_parent: bool,
+    pub fit_canvas_strategy: Option<FitCanvasStrategy>,
 }
 
 impl Default for WindowDescriptor {
@@ -861,7 +867,7 @@ impl Default for WindowDescriptor {
             mode: WindowMode::Windowed,
             transparent: false,
             canvas: None,
-            fit_canvas_to_parent: false,
+            fit_canvas_strategy: None,
         }
     }
 }
