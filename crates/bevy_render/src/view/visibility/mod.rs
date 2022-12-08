@@ -335,17 +335,17 @@ const VISIBLE_ENTITIES_QUERY_BATCH_SIZE: usize = 1024;
 /// for that view.
 pub fn check_visibility(
     mut thread_queues: Local<ThreadLocal<Cell<Vec<Entity>>>>,
-    mut view_query: Query<(&mut VisibleEntities, &Frustum, Option<&RenderLayers>), With<Camera>>,
+    mut view_query: Query<(&mut VisibleEntities, &Frustum, Option<&RenderLayer>), With<Camera>>,
     mut visible_aabb_query: Query<(
         Entity,
         &mut ComputedVisibility,
-        Option<&RenderLayers>,
+        Option<&RenderLayer>,
         &Aabb,
         &GlobalTransform,
         Option<&NoFrustumCulling>,
     )>,
     mut visible_no_aabb_query: Query<
-        (Entity, &mut ComputedVisibility, Option<&RenderLayers>),
+        (Entity, &mut ComputedVisibility, Option<&RenderLayer>),
         Without<Aabb>,
     >,
 ) {
@@ -369,7 +369,7 @@ pub fn check_visibility(
                 }
 
                 let entity_mask = maybe_entity_mask.copied().unwrap_or_default();
-                if !view_mask.intersects(&entity_mask) {
+                if view_mask != entity_mask {
                     return;
                 }
 
@@ -408,7 +408,7 @@ pub fn check_visibility(
                 }
 
                 let entity_mask = maybe_entity_mask.copied().unwrap_or_default();
-                if !view_mask.intersects(&entity_mask) {
+                if view_mask != entity_mask {
                     return;
                 }
 

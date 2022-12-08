@@ -10,7 +10,7 @@ use bevy_render::{
     primitives::{Aabb, CubemapFrusta, Frustum, Plane, Sphere},
     render_resource::BufferBindingType,
     renderer::RenderDevice,
-    view::{ComputedVisibility, RenderLayers, VisibleEntities},
+    view::{ComputedVisibility, RenderLayer, VisibleEntities},
 };
 use bevy_transform::{components::GlobalTransform, prelude::Transform};
 use bevy_utils::tracing::warn;
@@ -1579,21 +1579,21 @@ pub fn check_light_mesh_visibility(
         &GlobalTransform,
         &CubemapFrusta,
         &mut CubemapVisibleEntities,
-        Option<&RenderLayers>,
+        Option<&RenderLayer>,
     )>,
     mut spot_lights: Query<(
         &SpotLight,
         &GlobalTransform,
         &Frustum,
         &mut VisibleEntities,
-        Option<&RenderLayers>,
+        Option<&RenderLayer>,
     )>,
     mut directional_lights: Query<
         (
             &DirectionalLight,
             &Frustum,
             &mut VisibleEntities,
-            Option<&RenderLayers>,
+            Option<&RenderLayer>,
             &ComputedVisibility,
         ),
         Without<SpotLight>,
@@ -1602,7 +1602,7 @@ pub fn check_light_mesh_visibility(
         (
             Entity,
             &mut ComputedVisibility,
-            Option<&RenderLayers>,
+            Option<&RenderLayer>,
             Option<&Aabb>,
             Option<&GlobalTransform>,
         ),
@@ -1651,7 +1651,7 @@ pub fn check_light_mesh_visibility(
             }
 
             let entity_mask = maybe_entity_mask.copied().unwrap_or_default();
-            if !view_mask.intersects(&entity_mask) {
+            if view_mask != entity_mask {
                 continue;
             }
 
@@ -1708,7 +1708,7 @@ pub fn check_light_mesh_visibility(
                     }
 
                     let entity_mask = maybe_entity_mask.copied().unwrap_or_default();
-                    if !view_mask.intersects(&entity_mask) {
+                    if view_mask != entity_mask {
                         continue;
                     }
 
@@ -1772,7 +1772,7 @@ pub fn check_light_mesh_visibility(
                     }
 
                     let entity_mask = maybe_entity_mask.copied().unwrap_or_default();
-                    if !view_mask.intersects(&entity_mask) {
+                    if view_mask != entity_mask {
                         continue;
                     }
 

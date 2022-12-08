@@ -10,7 +10,7 @@ pub use projection::*;
 use crate::{
     primitives::Aabb,
     render_graph::RenderGraph,
-    view::{ComputedVisibility, RenderLayers, Visibility, VisibleEntities},
+    view::{ComputedVisibility, RenderLayer, Visibility, VisibleEntities},
     RenderApp, RenderStage,
 };
 use bevy_app::{App, Plugin};
@@ -30,7 +30,7 @@ impl Plugin for CameraPlugin {
             .register_type::<ScalingMode>()
             .register_type::<Aabb>()
             .register_type::<CameraRenderGraph>()
-            .register_type::<RenderLayers>()
+            .register_type::<RenderLayer>()
             .add_plugin(CameraProjectionPlugin::<Projection>::default())
             .add_plugin(CameraProjectionPlugin::<OrthographicProjection>::default())
             .add_plugin(CameraProjectionPlugin::<PerspectiveProjection>::default());
